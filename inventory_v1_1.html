@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>進銷存工具 V1‑1</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoA6VUF2KfQ/n6t5v4IfW3vZL5F1KNEFrGf6Zp2a3rQe1dC"
+    crossorigin="anonymous"
+  />
+  <style>
+    body {
+      padding: 2rem;
+    }
+    h2 {
+      margin-top: 2rem;
+    }
+    .form-section {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 0.5rem;
+      background-color: #f9f9f9;
+    }
+    .table-wrapper {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">進銷存工具 V1‑1</h1>
+    <p>本頁面提供基本的 Web 介面，用於呼叫後端 API 進行商品、倉庫、進貨、銷貨及庫存管理。</p>
+
+    <!-- Item Management -->
+    <h2>商品管理</h2>
+    <div class="form-section" id="item-section">
+      <h5>新增商品</h5>
+      <form id="itemForm" class="row g-3">
+        <div class="col-md-3">
+          <label for="itemSku" class="form-label">SKU*</label>
+          <input type="text" class="form-control" id="itemSku" required />
+        </div>
+        <div class="col-md-3">
+          <label for="itemName" class="form-label">名稱*</label>
+          <input type="text" class="form-control" id="itemName" required />
+        </div>
+        <div class="col-md-3">
+          <label for="itemUnit" class="form-label">單位</label>
+          <input type="text" class="form-control" id="itemUnit" placeholder="例如：件、盒" />
+        </div>
+        <div class="col-md-3">
+          <label for="itemBarcode" class="form-label">條碼</label>
+          <input type="text" class="form-control" id="itemBarcode" />
+        </div>
+        <div class="col-md-4">
+          <label for="itemCategory" class="form-label">分類</label>
+          <input type="text" class="form-control" id="itemCategory" />
+        </div>
+        <div class="col-md-4">
+          <label for="itemSafety" class="form-label">安全庫存</label>
+          <input type="number" class="form-control" id="itemSafety" min="0" />
+        </div>
+        <div class="col-12">
+          <label for="itemDesc" class="form-label">描述</label>
+          <textarea class="form-control" id="itemDesc" rows="2"></textarea>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary">新增商品</button>
+        </div>
+      </form>
+    </div>
+    <div class="form-section">
+      <h5>現有商品</h5>
+      <button id="loadItems" class="btn btn-secondary mb-2">重新載入</button>
+      <div class="table-wrapper">
+        <table class="table table-bordered table-sm" id="itemsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>SKU</th>
+              <th>名稱</th>
+              <th>單位</th>
+              <th>分類</th>
+              <th>安全庫存</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Warehouse Management -->
+    <h2>倉庫管理</h2>
+    <div class="form-section" id="warehouse-section">
+      <h5>新增倉庫</h5>
+      <form id="warehouseForm" class="row g-3">
+          <div class="col-md-6">
+            <label for="whName" class="form-label">倉庫名稱*</label>
+            <input type="text" class="form-control" id="whName" required />
+          </div>
+          <div class="col-md-6">
+            <label for="whLocation" class="form-label">位置</label>
+            <input type="text" class="form-control" id="whLocation" />
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-primary">新增倉庫</button>
+          </div>
+      </form>
+    </div>
+    <div class="form-section">
+      <h5>現有倉庫</h5>
+      <button id="loadWarehouses" class="btn btn-secondary mb-2">重新載入</button>
+      <div class="table-wrapper">
+        <table class="table table-bordered table-sm" id="warehousesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>名稱</th>
+              <th>位置</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Purchase Order -->
+    <h2>建立進貨單</h2>
+    <div class="form-section">
+      <form id="purchaseForm">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="purchaseWarehouse" class="form-label">倉庫 ID*</label>
+            <input type="number" class="form-control" id="purchaseWarehouse" required />
+          </div>
+          <div class="col-md-4">
+            <label for="purchaseSupplier" class="form-label">供應商 ID（可選）</label>
+            <input type="number" class="form-control" id="purchaseSupplier" />
+          </div>
+        </div>
+        <div class="mt-3">
+          <h6>商品明細</h6>
+          <div id="purchaseLines">
+            <!-- lines will be inserted here -->
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="addPurchaseLine">新增商品</button>
+        </div>
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">送出進貨單</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sales Order -->
+    <h2>建立銷貨單</h2>
+    <div class="form-section">
+      <form id="salesForm">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="salesWarehouse" class="form-label">倉庫 ID*</label>
+            <input type="number" class="form-control" id="salesWarehouse" required />
+          </div>
+          <div class="col-md-4">
+            <label for="salesCustomer" class="form-label">客戶 ID（可選）</label>
+            <input type="number" class="form-control" id="salesCustomer" />
+          </div>
+        </div>
+        <div class="mt-3">
+          <h6>商品明細</h6>
+          <div id="salesLines">
+            <!-- lines inserted here -->
+          </div>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="addSalesLine">新增商品</button>
+        </div>
+        <div class="mt-3">
+          <button type="submit" class="btn btn-primary">送出銷貨單</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Inventory -->
+    <h2>庫存查詢</h2>
+    <div class="form-section">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-3">
+          <label for="inventoryWarehouse" class="form-label">倉庫 ID（留空查全部）</label>
+          <input type="number" class="form-control" id="inventoryWarehouse" />
+        </div>
+        <div class="col-md-2">
+          <button id="loadInventory" class="btn btn-secondary">查詢庫存</button>
+        </div>
+      </div>
+      <div class="table-wrapper mt-3">
+        <table class="table table-bordered table-sm" id="inventoryTable">
+          <thead>
+            <tr>
+              <th>商品 ID</th>
+              <th>名稱</th>
+              <th>庫存量</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const apiBase = "http://localhost:8000";
+
+    // Helper: create element from HTML string
+    function createElement(html) {
+      const template = document.createElement('template');
+      template.innerHTML = html.trim();
+      return template.content.firstChild;
+    }
+
+    // ITEM management
+    document.getElementById('itemForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        sku: document.getElementById('itemSku').value,
+        name: document.getElementById('itemName').value,
+        unit: document.getElementById('itemUnit').value || undefined,
+        barcode: document.getElementById('itemBarcode').value || undefined,
+        category: document.getElementById('itemCategory').value || undefined,
+        safety_stock: document.getElementById('itemSafety').value ? parseInt(document.getElementById('itemSafety').value) : undefined,
+        description: document.getElementById('itemDesc').value || undefined,
+      };
+      try {
+        const res = await fetch(`${apiBase}/items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('新增失敗');
+        alert('商品新增成功');
+        document.getElementById('itemForm').reset();
+        loadItems();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    async function loadItems() {
+      const tbody = document.querySelector('#itemsTable tbody');
+      tbody.innerHTML = '';
+      try {
+        const res = await fetch(`${apiBase}/items`);
+        const items = await res.json();
+        items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${item.id}</td><td>${item.sku}</td><td>${item.name}</td><td>${item.unit || ''}</td><td>${item.category || ''}</td><td>${item.safety_stock || ''}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    document.getElementById('loadItems').addEventListener('click', loadItems);
+    // Load on page load
+    loadItems();
+
+    // WAREHOUSE management
+    document.getElementById('warehouseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('whName').value,
+        location: document.getElementById('whLocation').value || undefined,
+      };
+      try {
+        const res = await fetch(`${apiBase}/warehouses`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!res.ok) throw new Error('新增倉庫失敗');
+        alert('倉庫新增成功');
+        document.getElementById('warehouseForm').reset();
+        loadWarehouses();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    async function loadWarehouses() {
+      const tbody = document.querySelector('#warehousesTable tbody');
+      tbody.innerHTML = '';
+      try {
+        const res = await fetch(`${apiBase}/warehouses`);
+        const warehouses = await res.json();
+        warehouses.forEach(wh => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${wh.id}</td><td>${wh.name}</td><td>${wh.location || ''}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    document.getElementById('loadWarehouses').addEventListener('click', loadWarehouses);
+    loadWarehouses();
+
+    // Purchase order lines helper
+    function addPurchaseLine() {
+      const idx = document.querySelectorAll('#purchaseLines .purchase-line').length;
+      const line = createElement(`
+        <div class="row g-2 mb-2 purchase-line">
+          <div class="col-md-4">
+            <input type="number" class="form-control" placeholder="商品ID" required />
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control" placeholder="數量" min="1" required />
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control" placeholder="單價" min="0" step="0.01" required />
+          </div>
+          <div class="col-md-2 d-flex align-items-center">
+            <button type="button" class="btn btn-link text-danger remove-line">移除</button>
+          </div>
+        </div>
+      `);
+      document.getElementById('purchaseLines').appendChild(line);
+    }
+    document.getElementById('addPurchaseLine').addEventListener('click', addPurchaseLine);
+    // remove line event
+    document.getElementById('purchaseLines').addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-line')) {
+        e.target.closest('.purchase-line').remove();
+      }
+    });
+    // Add an initial line
+    addPurchaseLine();
+
+    document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const warehouseId = parseInt(document.getElementById('purchaseWarehouse').value);
+      const supplierId = document.getElementById('purchaseSupplier').value;
+      const linesEls = document.querySelectorAll('#purchaseLines .purchase-line');
+      const lines = [];
+      linesEls.forEach(el => {
+        const [itemInput, qtyInput, priceInput] = el.querySelectorAll('input');
+        lines.push({
+          item_id: parseInt(itemInput.value),
+          quantity: parseInt(qtyInput.value),
+          unit_price: parseFloat(priceInput.value)
+        });
+      });
+      const payload = {
+        warehouse_id: warehouseId,
+        supplier_id: supplierId ? parseInt(supplierId) : undefined,
+        lines: lines
+      };
+      try {
+        const res = await fetch(`${apiBase}/purchase_orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('進貨單建立失敗');
+        alert('進貨單建立成功');
+        // Reset form
+        document.getElementById('purchaseForm').reset();
+        document.getElementById('purchaseLines').innerHTML = '';
+        addPurchaseLine();
+        loadInventory();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    // Sales order lines helper
+    function addSalesLine() {
+      const line = createElement(`
+        <div class="row g-2 mb-2 sales-line">
+          <div class="col-md-4">
+            <input type="number" class="form-control" placeholder="商品ID" required />
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control" placeholder="數量" min="1" required />
+          </div>
+          <div class="col-md-3">
+            <input type="number" class="form-control" placeholder="售價" min="0" step="0.01" required />
+          </div>
+          <div class="col-md-2 d-flex align-items-center">
+            <button type="button" class="btn btn-link text-danger remove-line">移除</button>
+          </div>
+        </div>
+      `);
+      document.getElementById('salesLines').appendChild(line);
+    }
+    document.getElementById('addSalesLine').addEventListener('click', addSalesLine);
+    document.getElementById('salesLines').addEventListener('click', (e) => {
+      if (e.target.classList.contains('remove-line')) {
+        e.target.closest('.sales-line').remove();
+      }
+    });
+    // initial line
+    addSalesLine();
+
+    document.getElementById('salesForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const warehouseId = parseInt(document.getElementById('salesWarehouse').value);
+      const customerId = document.getElementById('salesCustomer').value;
+      const linesEls = document.querySelectorAll('#salesLines .sales-line');
+      const lines = [];
+      linesEls.forEach(el => {
+        const [itemInput, qtyInput, priceInput] = el.querySelectorAll('input');
+        lines.push({
+          item_id: parseInt(itemInput.value),
+          quantity: parseInt(qtyInput.value),
+          unit_price: parseFloat(priceInput.value)
+        });
+      });
+      const payload = {
+        warehouse_id: warehouseId,
+        customer_id: customerId ? parseInt(customerId) : undefined,
+        lines: lines
+      };
+      try {
+        const res = await fetch(`${apiBase}/sales_orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('銷貨單建立失敗');
+        alert('銷貨單建立成功');
+        document.getElementById('salesForm').reset();
+        document.getElementById('salesLines').innerHTML = '';
+        addSalesLine();
+        loadInventory();
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+
+    // Inventory query
+    async function loadInventory() {
+      const warehouseId = document.getElementById('inventoryWarehouse').value;
+      let url = `${apiBase}/inventory`;
+      if (warehouseId) {
+        url += `?warehouse_id=${parseInt(warehouseId)}`;
+      }
+      const tbody = document.querySelector('#inventoryTable tbody');
+      tbody.innerHTML = '';
+      try {
+        const res = await fetch(url);
+        const inventory = await res.json();
+        inventory.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${row.item_id}</td><td>${row.item_name}</td><td>${row.quantity}</td>`;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    document.getElementById('loadInventory').addEventListener('click', (e) => {
+      e.preventDefault();
+      loadInventory();
+    });
+    // initial load
+    loadInventory();
+  </script>
+</body>
+</html>
