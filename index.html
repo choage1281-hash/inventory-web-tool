@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>進銷存工具 V1‑2</title>
+  <title>進銷存工具 V1‑3</title>
   <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
     rel="stylesheet"
@@ -32,7 +32,7 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="mb-4">進銷存工具 V1‑2</h1>
+    <h1 class="mb-4">進銷存工具 V1‑3</h1>
     <p>本頁面提供基本的 Web 介面，用於呼叫後端 API 進行商品、倉庫、進貨、銷貨及庫存管理。</p>
 
     <!-- Item Management -->
@@ -214,7 +214,8 @@
     // 設定後端 API 的基底網址。當部署到 GitHub Pages 時，請將以下 URL
     // 修改為您自己的後端服務域名，並確保使用 HTTPS。例如：
     // const apiBase = "https://api.example.com";
-    const apiBase = "https://your-api-endpoint.com";
+    // 預設使用下方的範例網址，部署後請替換為實際的 API 網域，以避免「Failed to fetch」錯誤。
+    const apiBase = "https://your-backend-api.com"; // 您可以將此網址替換為部署好的後端服務。
 
     // Helper: create element from HTML string
     function createElement(html) {
